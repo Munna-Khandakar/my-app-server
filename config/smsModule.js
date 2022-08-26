@@ -12,6 +12,7 @@ const request = require("request");
 module.exports.send_verification_sms = async (receiver, otp_code) => {
   let username = process.env.BULKSMSDB_USERNAME;
   let password = process.env.BULKSMSDB_PASSWORD;
+  let sendSms = false;
   let msg = `Your OTP code is ${otp_code}`;
   var options = {
     method: "POST",
@@ -20,6 +21,10 @@ module.exports.send_verification_sms = async (receiver, otp_code) => {
       "Content-Type": "application/x-www-form-urlencoded",
     },
   };
+  if (!sendSms) {
+    console.log("SMS SENT - BYPASSED: OPT " + otp_code);
+    return null;
+  }
   request(options, function (error, response) {
     if (error) throw new Error(error);
     console.log(response.body);

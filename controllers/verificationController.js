@@ -1,6 +1,6 @@
 var otpGenerator = require("otp-generator");
 const OTPVerificationModel = require("../models/OTPVerificationModel");
-const UserModel = require("../models/User");
+const UserModel = require("../models/C");
 const { send_verification_sms } = require("../config/smsModule");
 
 // POST: api/sendOTP
