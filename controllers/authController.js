@@ -1,5 +1,5 @@
 const UserModel = require("../models/C"); // C -> user model
-const DoctorModel = require("../models/Doctor");
+const DoctorModel = require("../models/B"); // B->doctor model
 var bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
 
@@ -115,11 +115,10 @@ module.exports.doctor_register_controller = async (req, res, next) => {
   }
 };
 
-// DOCTOR REGISTRATION
+// SEND PROFILE FROM TOKEN
 module.exports.getMyProfile = async (req, res, next) => {
   try {
     // send the user from token
-
     res.status(200).json(req.user);
   } catch (error) {
     res.status(500).json(error);

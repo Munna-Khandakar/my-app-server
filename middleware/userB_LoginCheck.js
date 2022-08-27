@@ -1,7 +1,7 @@
 // this middleware is only for users
-
+// user c -> patient
 const jwt = require("jsonwebtoken");
-const UserModel = require("../models/C");
+const UserB_Model = require("../models/B");
 
 module.exports = async (req, res, next) => {
   const SECRET_KEY = process.env.SECRET_KEY;
@@ -18,7 +18,7 @@ module.exports = async (req, res, next) => {
       console.log(err);
       return res.status(401).json({ error: "You must be logged in" });
     } else {
-      UserModel.findOne({ _id: result._id })
+      UserB_Model.findOne({ _id: result._id })
         .then((user) => {
           req.user = user;
           next();
