@@ -1,13 +1,15 @@
 const router = require("express").Router();
-const User = require("../models/C");
-const Doctor = require("../models/Doctor");
-const bcrypt = require("bcrypt");
+// const User = require("../models/C");
+// const Doctor = require("../models/Doctor");
+// const bcrypt = require("bcrypt");
 const {
   login_controller,
   register_controller,
   doctor_login_controller,
   doctor_register_controller,
+  getMyProfile,
 } = require("../controllers/authController");
+const requiredLogin = require("../middleware/requiredLogin");
 
 // REGISTER
 router.post("/register", register_controller);
@@ -96,4 +98,5 @@ router.post("/doctor/login", doctor_login_controller);
 //   }
 // });
 
+router.get("/profile", requiredLogin, getMyProfile);
 module.exports = router;

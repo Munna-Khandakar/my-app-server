@@ -76,9 +76,10 @@ module.exports.sendOTP = async (req, res, next) => {
     console.log("1st time otp send to user");
     //  console.log(savedData);
     return res.status(200).json({
-      success: `A verification code sent in this ${phoneNo} phone number`,
+      success: `A verification code sent in this ${mobile} phone number`,
     });
   } catch (error) {
+    console.log(error);
     res.status(500).json(error);
   }
 

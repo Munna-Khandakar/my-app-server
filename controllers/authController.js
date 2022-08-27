@@ -114,3 +114,14 @@ module.exports.doctor_register_controller = async (req, res, next) => {
     res.status(500).json(error);
   }
 };
+
+// DOCTOR REGISTRATION
+module.exports.getMyProfile = async (req, res, next) => {
+  try {
+    // send the user from token
+
+    res.status(200).json(req.user);
+  } catch (error) {
+    res.status(500).json(error);
+  }
+};
