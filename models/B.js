@@ -27,10 +27,22 @@ const DoctorSchema = new mongoose.Schema(
     photo: {
       type: String,
     },
-    name: {
+    fullName: {
+      type: String,
+    },
+    email: {
       type: String,
     },
     experience: {
+      type: String,
+    },
+    nid: {
+      type: String,
+    },
+    presentAddressDetails: {
+      type: String,
+    },
+    permanentAddressDetails: {
       type: String,
     },
   },

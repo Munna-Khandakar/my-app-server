@@ -85,6 +85,7 @@ app.get("/api/emergency", (req, res) => {
 io.on("connection", (socket) => {
   socket.on("EmergencyDoctorAvaliable", (data) => {
     addEmergencyDoctor(data);
+    console.log("emergency doctor added...");
     console.log(data);
   });
 
