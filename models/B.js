@@ -1,5 +1,4 @@
 const mongoose = require("mongoose");
-
 const DoctorSchema = new mongoose.Schema(
   {
     mobile: {
@@ -14,6 +13,24 @@ const DoctorSchema = new mongoose.Schema(
       min: 6,
     },
     location: {
+      type: String,
+    },
+    charge: {
+      type: String,
+    },
+    available: {
+      type: String,
+    },
+    sysId: {
+      type: String,
+    },
+    photo: {
+      type: String,
+    },
+    name: {
+      type: String,
+    },
+    experience: {
       type: String,
     },
   },

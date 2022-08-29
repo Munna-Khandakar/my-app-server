@@ -14,8 +14,24 @@ const doctorRoute = require("./routes/doctors");
 const verificationRoute = require("./routes/verificationRoutes");
 
 let activeDoctors = [];
+let activeEmergencyDoctors = [];
 const addNewUser = (socketId) => {
   activeDoctors.push(socketId);
+};
+
+const addEmergencyDoctor = (data) => {
+  activeEmergencyDoctors.push(data);
+};
+
+const removeUser = (socketId) => {
+  activeDoctors = activeDoctors.filter((user) => user.socketId !== socketId);
+  activeEmergencyDoctors = activeEmergencyDoctors.filter(
+    (user) => user.socketId !== socketId
+  );
+};
+
+const getUser = (username) => {
+  // return onlineUsers.find((user) => user.username === username);
 };
 
 // main app initialization
@@ -49,18 +65,31 @@ app.use("/api/auth", authRoute);
 app.use("/api/posts", postRoute);
 app.use("/api/otp", verificationRoute);
 app.get("/api/emergency", (req, res) => {
-  //make an event to call all active doctors
-  var socket = req.app.get("io");
-  socket.emit("emergencyDoctorCall", "world");
-  res.header("Access-Control-Allow-Origin");
-  res.send("ok...");
+  try {
+    //make an event to call all active doctors
+    var socket = req.app.get("io");
+    // event for the doctors call
+    // filter the doctors, emit the event to the specific doctors
+    socket.emit("emergencyDoctorCall");
+
+    // send the filterd doctors details to patients
+    res.header("Access-Control-Allow-Origin");
+    return res.status(200).json({ doctors: activeEmergencyDoctors });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json(error);
+  }
 });
+
 // socket
 io.on("connection", (socket) => {
-  addNewUser(socket.id);
-  console.log("client connected: ", socket.id);
+  socket.on("EmergencyDoctorAvaliable", (data) => {
+    addEmergencyDoctor(data);
+    console.log(data);
+  });
 
   socket.on("disconnect", (reason) => {
+    removeUser(socket.id);
     console.log(reason);
   });
 });
