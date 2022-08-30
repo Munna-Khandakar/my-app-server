@@ -1,4 +1,4 @@
-const DoctorModel = require("../models/B"); // B->doctor model
+const UserModel = require("../models/C"); // B->doctor model
 
 // PUT: api/doctors/profile
 // UPDATE DOCTOR
@@ -10,8 +10,9 @@ module.exports.updateProfile = async (req, res) => {
     presentAddressDetails,
     permanentAddressDetails,
   } = req.body;
+
   try {
-    const updatedData = await DoctorModel.findOneAndUpdate(
+    const updatedData = await UserModel.findOneAndUpdate(
       { _id: req.user._id },
       {
         fullName,
@@ -25,7 +26,7 @@ module.exports.updateProfile = async (req, res) => {
       }
     );
     if (updatedData) {
-      console.log("Doctor's Data Saved....");
+      console.log("User's Data Saved....");
       return res
         .status(201)
         .json({ success: `Data saved successfully...`, user: updatedData });

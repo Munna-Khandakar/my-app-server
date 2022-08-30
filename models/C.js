@@ -17,9 +17,23 @@ const UserSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    userName: {
+    fullName: {
       type: String,
-      default: "",
+    },
+    email: {
+      type: String,
+    },
+    experience: {
+      type: String,
+    },
+    nid: {
+      type: String,
+    },
+    presentAddressDetails: {
+      type: String,
+    },
+    permanentAddressDetails: {
+      type: String,
     },
   },
   { timestamps: true }
