@@ -4,7 +4,6 @@ const DoctorSchema = new mongoose.Schema(
     mobile: {
       type: String,
       required: true,
-      max: 50,
       unique: true,
     },
     password: {
@@ -34,6 +33,9 @@ const DoctorSchema = new mongoose.Schema(
       type: String,
     },
     experience: {
+      type: String,
+    },
+    designation: {
       type: String,
     },
     nid: {

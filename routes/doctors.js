@@ -2,7 +2,12 @@ const router = require("express").Router();
 const Doctor = require("../models/C");
 const bcrypt = require("bcrypt");
 const userB_LoginCheck = require("../middleware/userB_LoginCheck");
-const { updateProfile } = require("../controllers/User_B_Controller");
+const {
+  updateProfile,
+  updateProfilePicture,
+  updateSettings,
+} = require("../controllers/User_B_Controller");
+const upload = require("../middleware/multer");
 // UPDATE USER
 // router.put("/:id", async (req, res) => {
 //   if (req.body.userId === req.params.id || req.body.isAdmin) {
@@ -28,6 +33,8 @@ const { updateProfile } = require("../controllers/User_B_Controller");
 // });
 
 router.put("/profile", userB_LoginCheck, updateProfile);
+router.put("/settings", userB_LoginCheck, updateSettings);
+router.put("/profile/photo", userB_LoginCheck, updateProfilePicture);
 
 // DELETE USER
 router.delete("/:id", async (req, res) => {
