@@ -12,55 +12,60 @@ const userRoute = require("./routes/users");
 const authRoute = require("./routes/authRoutes");
 const postRoute = require("./routes/posts");
 const doctorRoute = require("./routes/doctors");
+const tokenRoute = require("./routes/tokenRoutes");
+const operationRoutes = require("./routes/operationRoutes");
 const verificationRoute = require("./routes/verificationRoutes");
 const OperationModel = require("./models/OperationModel");
 const userC_LoginCheck = require("./middleware/userC_LoginCheck");
 const userB_LoginCheck = require("./middleware/userB_LoginCheck");
-
+const ExpoPushTokenModel = require("./models/ExpoPushToken");
+const { GenerateRegerenceCode } = require("./config/ReferenceCode");
+const fetch = (...args) =>
+  import("node-fetch").then(({ default: fetch }) => fetch(...args));
 let activeUsers = {};
 let activeEmergencyDoctors = [
-  {
-    socketId: "iBqrxmP19h9DABIkAAB-",
-    userId: "6309eacdba459c3d6ec55e7e",
-    charge: 450,
-    location: {
-      altitude: -40.099998474121094,
-      heading: 0,
-      altitudeAccuracy: 1.4855982065200806,
-      latitude: 23.1346628,
-      speed: 0,
-      longitude: 90.2694133,
-      accuracy: 32.7531299835332,
-    },
-  },
-  {
-    socketId: "iBqrxmP19h9DABIkAAC-",
-    userId: "6309eacdba459c3d6ec55e8e",
-    charge: 600,
-    location: {
-      altitude: -40.089998474121094,
-      heading: 0,
-      altitudeAccuracy: 1.4855982065200806,
-      latitude: 23.8345533,
-      speed: 0,
-      longitude: 90.3694226,
-      accuracy: 32.7599983215332,
-    },
-  },
-  {
-    socketId: "iBqrxmP19h9DABIkACB-",
-    userId: "6309eacdba459c3d6ec55e1e",
-    charge: 955,
-    location: {
-      altitude: -40.089998474121094,
-      heading: 0,
-      altitudeAccuracy: 1.4855982065200806,
-      latitude: 23.9346628,
-      speed: 0,
-      longitude: 90.3694133,
-      accuracy: 32.7599983215332,
-    },
-  },
+  // {
+  //   socketId: "iBqrxmP19h9DABIkAAB-",
+  //   userId: "6309eacdba459c3d6ec55e7e",
+  //   charge: 450,
+  //   location: {
+  //     altitude: -40.099998474121094,
+  //     heading: 0,
+  //     altitudeAccuracy: 1.4855982065200806,
+  //     latitude: 23.1346628,
+  //     speed: 0,
+  //     longitude: 90.2694133,
+  //     accuracy: 32.7531299835332,
+  //   },
+  // },
+  // {
+  //   socketId: "iBqrxmP19h9DABIkAAC-",
+  //   userId: "6309eacdba459c3d6ec55e8e",
+  //   charge: 600,
+  //   location: {
+  //     altitude: -40.089998474121094,
+  //     heading: 0,
+  //     altitudeAccuracy: 1.4855982065200806,
+  //     latitude: 23.8345533,
+  //     speed: 0,
+  //     longitude: 90.3694226,
+  //     accuracy: 32.7599983215332,
+  //   },
+  // },
+  // {
+  //   socketId: "iBqrxmP19h9DABIkACB-",
+  //   userId: "6309eacdba459c3d6ec55e1e",
+  //   charge: 955,
+  //   location: {
+  //     altitude: -40.089998474121094,
+  //     heading: 0,
+  //     altitudeAccuracy: 1.4855982065200806,
+  //     latitude: 23.9346628,
+  //     speed: 0,
+  //     longitude: 90.3694133,
+  //     accuracy: 32.7599983215332,
+  //   },
+  // },
 ];
 
 const addEmergencyDoctor = (data) => {
@@ -102,15 +107,40 @@ const getDistanceFromUser = (clientLocation, ukilLocation) => {
   console.log("distance", d / 1000, "KM");
   return d / 1000;
 };
-const getUser = (username) => {
-  // return onlineUsers.find((user) => user.username === username);
+const sendExpoPushNotification = async (userId, msg) => {
+  const data = await ExpoPushTokenModel.findOne({ userId });
+  const expoPushToken = data.expoPushToken;
+  sendPushNotification(expoPushToken, msg);
 };
+
+async function sendPushNotification(expoPushToken, msg) {
+  const message = {
+    to: expoPushToken,
+    sound: "default",
+    title: "UkilBabu",
+    body: msg,
+    data: { someData: "goes here" },
+  };
+
+  await fetch("https://exp.host/--/api/v2/push/send", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Accept-encoding": "gzip, deflate",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(message),
+  });
+}
 
 // main app initialization
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-  /* options */
+  cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"],
+  },
 });
 dotenv.config();
 
@@ -135,9 +165,10 @@ app.use("/api/users", userRoute);
 app.use("/api/doctors", doctorRoute);
 app.use("/api/auth", authRoute);
 app.use("/api/posts", postRoute);
+app.use("/api/token", tokenRoute);
 app.use("/api/otp", verificationRoute);
+app.use("/api/operation", operationRoutes);
 app.post("/api/emergency", userC_LoginCheck, async (req, res) => {
-  console.log(req.body);
   try {
     //make an event to call all active doctors
     var socket = req.app.get("io");
@@ -147,7 +178,7 @@ app.post("/api/emergency", userC_LoginCheck, async (req, res) => {
       doctor.distance = getDistanceFromUser(req.body.location, doctor.location);
       doctor.status = "reachable";
       // selecting the accepted range ukils
-      if (doctor.distance < process.env.ACCEPTED_DISTANCE) {
+      if (!doctor.distance < process.env.ACCEPTED_DISTANCE) {
         nearUkils.push(doctor);
       }
     });
@@ -166,33 +197,37 @@ app.post("/api/emergency", userC_LoginCheck, async (req, res) => {
       0
     );
     const avgCost = Math.floor(totalCost / nearUkils.length);
-    console.log(nearUkils);
     console.log(
       `${nearUkils.length} ukil found nearby with average charge ${avgCost}`
     );
+    // generate bkash ref
+    const refCode = GenerateRegerenceCode();
+    // save to operation table
     const newOperation = new OperationModel({
       clientId: req.user._id,
       clientLocation: req.body.location,
-      avialableUkils: nearUkils,
+      availableUkils: nearUkils,
       averageCost: avgCost,
+      referenceCode: refCode,
       operationStatus: "active",
     });
     const operation = await newOperation.save();
 
-    const senderUkilUserId = operation.avialableUkils[0].userId;
+    const senderUkilUserId = operation.availableUkils[0].userId;
     // check if the doctor is online
     if (
       activeEmergencyDoctors.some((ukil) => ukil.userId === senderUkilUserId)
     ) {
+      sendExpoPushNotification(senderUkilUserId, "YOU HAVE AN EMERGENCY CALL");
       const ukilSocketId = activeUsers[senderUkilUserId];
       const updatedData = await OperationModel.findOneAndUpdate(
         {
           _id: operation._id,
-          "avialableUkils.userId": senderUkilUserId,
+          "availableUkils.userId": senderUkilUserId,
         },
         {
           $set: {
-            "avialableUkils.$.status": "call sent",
+            "availableUkils.$.status": "call sent",
           },
         }
       );
@@ -206,11 +241,11 @@ app.post("/api/emergency", userC_LoginCheck, async (req, res) => {
       const updatedData = await OperationModel.findOneAndUpdate(
         {
           _id: operation._id,
-          "avialableUkils.userId": senderUkilUserId,
+          "availableUkils.userId": senderUkilUserId,
         },
         {
           $set: {
-            "avialableUkils.$.status": "went offline",
+            "availableUkils.$.status": "went offline",
           },
         }
       );
@@ -218,13 +253,10 @@ app.post("/api/emergency", userC_LoginCheck, async (req, res) => {
       // call function for next user
       return await getReachableUkil(operation._id, res, req);
     }
-
-    // event for all
-    // socket.emit("emergencyDoctorCall");
-
-    // send the filterd doctors details to patients
     res.header("Access-Control-Allow-Origin");
-    return res.status(200).json("Searching Nearby Ukils for You, Sir");
+    return res
+      .status(200)
+      .json({ msg: "Searching Nearby Ukils for You, Sir", _id: operation._id });
   } catch (error) {
     console.log(error);
     return res.status(500).json(error);
@@ -236,11 +268,11 @@ app.put("/api/emergency", userB_LoginCheck, async (req, res) => {
     const updateData = await OperationModel.findOneAndUpdate(
       {
         _id: req.body.operationId,
-        "avialableUkils.userId": req.user._id,
+        "availableUkils.userId": req.user._id,
       },
       {
         $set: {
-          "avialableUkils.$.status": req.body.reason,
+          "availableUkils.$.status": req.body.reason,
         },
       }
     );
@@ -252,6 +284,7 @@ app.put("/api/emergency", userB_LoginCheck, async (req, res) => {
   }
 });
 app.put("/api/accept/emergency", userB_LoginCheck, async (req, res) => {
+  var socket = req.app.get("io");
   try {
     const updateData = await OperationModel.findOneAndUpdate(
       {
@@ -268,6 +301,9 @@ app.put("/api/accept/emergency", userB_LoginCheck, async (req, res) => {
         new: true,
       }
     );
+    // generate an ref id
+    // emit event to the client
+    socket.to(activeUsers[updateData.clientId]).emit("ClientPayment");
     res
       .status(200)
       .json("Please Wait for the payemnt process. Our Admin will call you");
@@ -291,28 +327,29 @@ const getReachableUkil = async (operationId, res, req) => {
       {
         _id: operationId,
         operationStatus: "active",
-        "avialableUkils.status": "reachable",
+        "availableUkils.status": "reachable",
       },
       {
         _id: 0,
         averageCost: 1,
-        "avialableUkils.$": 1,
+        "availableUkils.$": 1,
       }
     );
     if (reachableUkil) {
       // ukil user id
-      const ukilUserId = reachableUkil.avialableUkils[0].userId;
+      const ukilUserId = reachableUkil.availableUkils[0].userId;
       // check if the doctor is online
       if (activeEmergencyDoctors.some((ukil) => ukil.userId === ukilUserId)) {
         const ukilSocketId = activeUsers[ukilUserId];
+        sendExpoPushNotification(ukilUserId, "YOU HAVE AN EMERGENCY CALL");
         const updateData = await OperationModel.findOneAndUpdate(
           {
             _id: operationId,
-            "avialableUkils.userId": ukilUserId,
+            "availableUkils.userId": ukilUserId,
           },
           {
             $set: {
-              "avialableUkils.$.status": "call sent",
+              "availableUkils.$.status": "call sent",
             },
           }
         );
@@ -327,11 +364,11 @@ const getReachableUkil = async (operationId, res, req) => {
         const updateData = await OperationModel.findOneAndUpdate(
           {
             _id: operationId,
-            "avialableUkils.userId": ukilUserId,
+            "availableUkils.userId": ukilUserId,
           },
           {
             $set: {
-              "avialableUkils.$.status": "went offline",
+              "availableUkils.$.status": "went offline",
             },
           }
         );
@@ -362,12 +399,16 @@ const getReachableUkil = async (operationId, res, req) => {
 
 // socket
 io.on("connection", (socket) => {
+  socket.on("online", () => {
+    console.log("app online");
+  });
   socket.on("MapUserId", (userId) => {
     activeUsers[userId] = socket.id;
     console.log(activeUsers);
   });
   socket.on("EmergencyDoctorAvaliable", (data) => {
     addEmergencyDoctor(data);
+    socket.emit("operation-doctorLocations", activeEmergencyDoctors);
     console.log("emergency doctor added...");
     // console.log(data);
   });

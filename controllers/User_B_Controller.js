@@ -68,13 +68,6 @@ module.exports.updateSettings = async (req, res) => {
 // PUT: api/doctors/profile/photo
 // UPDATE DOCTOR PROFILE PICTURE
 module.exports.updateProfilePicture = async (req, res) => {
-  // submit the form
-  console.log(req.body);
-  const photo = await cloudinary.uploader.upload(req.body.photo);
-  console.log(photo);
-  //const photo = req.file.filename
-  req.body.photo = photo.url;
-  //console.log(req.body);
   try {
     const updatedData = await DoctorModel.findOneAndUpdate(
       { _id: req.user._id },
@@ -95,4 +88,48 @@ module.exports.updateProfilePicture = async (req, res) => {
     console.log(error);
     return res.status(500).json({ error: `Somwthing went wrong` });
   }
+};
+
+// PUT: api/doctors/location
+// UPDATE DOCTOR
+module.exports.updateLocation = async (req, res) => {
+  try {
+    const { location } = req.body;
+    const updatedData = await DoctorModel.findOneAndUpdate(
+      { _id: req.user._id },
+      {
+        location,
+      },
+      {
+        new: true, // returns the new updated record...
+      }
+    );
+    if (updatedData) {
+      console.log("Location Updated Saved....");
+      return res.status(201).json({
+        success: `Location Updated successfully...`,
+        user: updatedData,
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: `Somwthing went wrong` });
+  }
+};
+
+module.exports.getAllUkils = async (req, res) => {
+  try {
+    const ukils = await DoctorModel.find();
+
+    return ukils;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+module.exports.getClientLocation = async (req, res) => {
+  // const {operationId} = req.body;
+  try {
+  } catch (error) {}
 };

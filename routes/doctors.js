@@ -1,40 +1,24 @@
 const router = require("express").Router();
 const Doctor = require("../models/C");
-const bcrypt = require("bcrypt");
 const userB_LoginCheck = require("../middleware/userB_LoginCheck");
 const {
   updateProfile,
   updateProfilePicture,
   updateSettings,
+  updateLocation,
+  getClientLocation,
 } = require("../controllers/User_B_Controller");
-const upload = require("../middleware/multer");
-// UPDATE USER
-// router.put("/:id", async (req, res) => {
-//   if (req.body.userId === req.params.id || req.body.isAdmin) {
-//     if (req.body.password) {
-//       try {
-//         const salt = await bcrypt.genSalt(10);
-//         req.body.password = await bcrypt.hash(req.body.password, salt);
-//       } catch (error) {
-//         return res.status(500).json(error);
-//       }
-//     }
-//     try {
-//       const user = await Doctor.findByIdAndUpdate(req.params.id, {
-//         $set: req.body,
-//       });
-//       res.status(200).json("Account Updated");
-//     } catch (error) {
-//       return res.status(500).json(error);
-//     }
-//   } else {
-//     return res.status(403).json("You can update only your account");
-//   }
-// });
 
+// UPDATE UKIL PROFILE
 router.put("/profile", userB_LoginCheck, updateProfile);
+// UPDATE UKIL LOCATION
+router.put("/location", userB_LoginCheck, updateLocation);
+// UPDATE ukil charge
 router.put("/settings", userB_LoginCheck, updateSettings);
+// UPDATE UKIL PROFILE PHOTO
 router.put("/profile/photo", userB_LoginCheck, updateProfilePicture);
+// GET THE CLIENT LOCATION
+router.get("/client/location", userB_LoginCheck, getClientLocation);
 
 // DELETE USER
 router.delete("/:id", async (req, res) => {

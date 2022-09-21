@@ -1,8 +1,9 @@
 operation table ->operationStatus:
     active - client called an ukil, and the operatin is going on.
     close - client didn't get any ukil, so system close the operation.
-    success - client get the ukil and everything is ok.
+    success - ukil complete the operatin.
     payment pending - ukil accept the call, but payment not completed by client
+    payment complete - client complete the payment, now ukil will move to the client
 
 
 operation table -> available ukils -> status:
@@ -10,3 +11,9 @@ operation table -> available ukils -> status:
     reachable - he is in online, call will be sent if needed
     went offline - he was online during making the call, but went offline.
     call reject - ukil crejected the call
+    cancel - user cancel the call 
+
+callQueue
+    incoming - calling
+    timeout - didn't take the phone
+    cancel - user close the call

@@ -12,7 +12,7 @@ const DoctorSchema = new mongoose.Schema(
       min: 6,
     },
     location: {
-      type: String,
+      type: Object,
     },
     charge: {
       type: String,

@@ -2,7 +2,11 @@ const router = require("express").Router();
 const User = require("../models/C");
 const bcrypt = require("bcrypt");
 const userC_LoginCheck = require("../middleware/userC_LoginCheck");
-const { updateProfile } = require("../controllers/User_C_Controller");
+const {
+  updateProfile,
+  updateProfilePicture,
+  cancelEmergencyCall,
+} = require("../controllers/User_C_Controller");
 // UPDATE USER
 // router.put("/:id", async (req, res) => {
 //   if (req.body.userId === req.params.id || req.body.isAdmin) {
@@ -27,6 +31,8 @@ const { updateProfile } = require("../controllers/User_C_Controller");
 //   }
 // });
 router.put("/profile", userC_LoginCheck, updateProfile);
+router.put("/profile/photo", userC_LoginCheck, updateProfilePicture);
+router.put("/cancel/operation/:id", userC_LoginCheck, cancelEmergencyCall);
 // DELETE USER
 router.delete("/:id", async (req, res) => {
   if (req.body.userId === req.params.id || req.body.isAdmin) {
