@@ -1,7 +1,7 @@
 operation table ->operationStatus:
     active - client called an ukil, and the operatin is going on.
     close - client didn't get any ukil, so system close the operation.
-    success - ukil complete the operatin.
+    success - ukil complete the operation.
     payment pending - ukil accept the call, but payment not completed by client
     payment complete - client complete the payment, now ukil will move to the client
 

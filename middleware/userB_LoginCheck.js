@@ -6,7 +6,6 @@ const UserB_Model = require("../models/B");
 module.exports = async (req, res, next) => {
   const SECRET_KEY = process.env.SECRET_KEY;
   const { authorization } = req.headers;
-  console.log(authorization);
   if (!authorization) {
     console.log("authorization error...");
     return res.status(401).json({ error: "You must be logged in" });
@@ -15,6 +14,7 @@ module.exports = async (req, res, next) => {
   const token = authorization.split(" ")[1];
   jwt.verify(token, SECRET_KEY, (err, result) => {
     if (err) {
+      console.log("error during token verification");
       console.log(err);
       return res.status(401).json({ error: "You must be logged in" });
     } else {
@@ -24,6 +24,7 @@ module.exports = async (req, res, next) => {
           next();
         })
         .catch((err) => {
+          console.log("error during finding user from model");
           console.log(err);
           return res.status(404).json({ error: "Something went wrong" });
         });
