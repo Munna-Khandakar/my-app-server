@@ -6,7 +6,6 @@ const UserModel = require("../models/C");
 module.exports = async (req, res, next) => {
   const SECRET_KEY = process.env.SECRET_KEY;
   const { authorization } = req.headers;
-  console.log(authorization);
   if (!authorization) {
     console.log("authorization error...");
     return res.status(401).json({ error: "You must be logged in" });

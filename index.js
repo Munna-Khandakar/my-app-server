@@ -20,6 +20,7 @@ const userC_LoginCheck = require("./middleware/userC_LoginCheck");
 const userB_LoginCheck = require("./middleware/userB_LoginCheck");
 const ExpoPushTokenModel = require("./models/ExpoPushToken");
 const { GenerateRegerenceCode } = require("./config/ReferenceCode");
+const { GetRattings } = require("./config/Helpers");
 const fetch = (...args) =>
   import("node-fetch").then(({ default: fetch }) => fetch(...args));
 let activeUsers = {};
@@ -254,16 +255,17 @@ app.post("/api/emergency", userC_LoginCheck, async (req, res) => {
       return await getReachableUkil(operation._id, res, req);
     }
     res.header("Access-Control-Allow-Origin");
-    return res
-      .status(200)
-      .json({ msg: "Searching Nearby Ukils for You, Sir", _id: operation._id });
+    return res.status(200).json({
+      msg: "Searching Nearby Ukils for You, Sir",
+      _id: operation._id,
+      refCode: refCode,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json(error);
   }
 });
 app.put("/api/emergency", userB_LoginCheck, async (req, res) => {
-  console.log(req.body);
   try {
     const updateData = await OperationModel.findOneAndUpdate(
       {
@@ -286,6 +288,13 @@ app.put("/api/emergency", userB_LoginCheck, async (req, res) => {
 app.put("/api/accept/emergency", userB_LoginCheck, async (req, res) => {
   var socket = req.app.get("io");
   try {
+    const operation = await OperationModel.findById(req.body.operationId);
+    if (operation.operationStatus === "cancel") {
+      return res
+        .status(200)
+        .json({ code: "cancel", msg: "Sorry, User terminated the call" });
+    }
+
     const updateData = await OperationModel.findOneAndUpdate(
       {
         _id: req.body.operationId,
@@ -304,9 +313,10 @@ app.put("/api/accept/emergency", userB_LoginCheck, async (req, res) => {
     // generate an ref id
     // emit event to the client
     socket.to(activeUsers[updateData.clientId]).emit("ClientPayment");
-    res
-      .status(200)
-      .json("Please Wait for the payemnt process. Our Admin will call you");
+    return res.status(200).json({
+      code: "ok",
+      msg: "Please Wait for the payemnt process. Our Admin will call you",
+    });
   } catch (error) {
     console.log(error);
   }
@@ -404,7 +414,7 @@ io.on("connection", (socket) => {
   });
   socket.on("MapUserId", (userId) => {
     activeUsers[userId] = socket.id;
-    console.log(activeUsers);
+    // console.log(activeUsers);
   });
   socket.on("EmergencyDoctorAvaliable", (data) => {
     addEmergencyDoctor(data);
@@ -427,6 +437,7 @@ io.on("connection", (socket) => {
     console.log(reason);
   });
 });
+
 // app listenning ...
 httpServer.listen(5000, () => {
   console.log("backend server is running on port 5000");

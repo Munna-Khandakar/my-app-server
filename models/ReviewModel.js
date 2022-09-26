@@ -5,10 +5,10 @@ const ReviewSchema = new mongoose.Schema(
     reviewer: {
       type: String,
     },
-    review: {
+    ratings: {
       type: Number,
     },
-    remarks: {
+    review: {
       type: String,
     },
     receiver: {

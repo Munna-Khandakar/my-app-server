@@ -1,6 +1,7 @@
 const DoctorModel = require("../models/B"); // B->ukil model
 const ReviewModel = require("../models/ReviewModel");
 const OperationModel = require("../models/OperationModel");
+const { GetRattings } = require("../config/Helpers");
 
 // PUT: api/doctors/profile
 // UPDATE DOCTOR
@@ -179,8 +180,24 @@ module.exports.completeOperation = async (req, res) => {
 };
 
 module.exports.ukilReviewToClient = async (req, res) => {
-  const { clientId } = req.body;
-  console.log(clientId);
+  const { receiverId, ratings, review } = req.body;
   try {
+    const op = new ReviewModel({
+      reviewer: req.user._id,
+      ratings: ratings,
+      review: review,
+      receiver: receiverId,
+    });
+    const data = await op.save();
+    res.status(200).json("Review Saved. Thanks for your review");
   } catch (error) {}
+};
+
+module.exports.getMyReview = async (req, res) => {
+  try {
+    const review = await GetRattings(req.user._id);
+    res.status(200).json(review);
+  } catch (error) {
+    console.log(error);
+  }
 };

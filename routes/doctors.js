@@ -10,6 +10,7 @@ const {
   checkPayment,
   completeOperation,
   ukilReviewToClient,
+  getMyReview,
 } = require("../controllers/User_B_Controller");
 
 // UPDATE UKIL PROFILE
@@ -28,5 +29,7 @@ router.post("/check/payment", userB_LoginCheck, checkPayment);
 router.post("/complete/operation", userB_LoginCheck, completeOperation);
 // POST REVIEW A CLIENT
 router.post("/review", userB_LoginCheck, ukilReviewToClient);
+// GET GET UKIL REVIEW
+router.get("/myratings", userB_LoginCheck, getMyReview);
 
 module.exports = router;
